@@ -1,8 +1,8 @@
-# SnapURL — A Modern URL Shortener
+# LINKFORGE — A Modern URL Shortener
 
 > Shorten links. Track clicks. Control where people go.
 
-SnapURL is a production-grade URL shortener built from scratch. Beyond basic shortening, it features deep click analytics, conditional redirects (by country/device), QR code generation, custom slugs, and link-in-bio pages.
+LinkForge is a production-grade URL shortener built from scratch. Beyond basic shortening, it features deep click analytics, conditional redirects (by country/device), QR code generation, custom slugs, and link-in-bio pages.
 
 ---
 
