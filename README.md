@@ -127,7 +127,7 @@ This project was built in 21 days. Each day's progress is documented below.
 | Day | Feature | Status |
 |-----|---------|--------|
 | 1   | Core theory + project scaffold | ✅ |
-| 2   | Database schema design | 🔲 |
+| 2   | Database schema design | ✅ |
 | 3   | Express app scaffold | 🔲 |
 | 4   | Slug generation (base62) | 🔲 |
 | 5   | POST /api/shorten endpoint | 🔲 |
