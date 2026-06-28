@@ -1,22 +1,23 @@
-const express = require('express');
-const router = express.Router();
+const express  = require('express');
+const router   = express.Router();
+const { shorten } = require('../controllers/shorten');
 
-router.get('/health' , (req, res) => {
+// ── Health check ──────────────────────────────────────────────
+router.get('/health', (req, res) => {
   res.json({
-    status: 'ok',
+    status:    'ok',
     timestamp: new Date().toISOString(),
-    uptime: Math.floor(process.uptime())
+    uptime:    Math.floor(process.uptime()) + 's',
   });
 });
 
+// ── POST /api/shorten ─────────────────────────────────────────
+// The main endpoint — validate URL, create short link, return it
+router.post('/shorten', shorten);
 
-router.post('/shorten', (req, res) => {
-  res.status(501). json({ error: { message: 'Comming on Day 5'}});
-
-});
-
-router.get('/stats/:shortCode', (req, res) => {
-  res.status(501).json({ error: { message: 'Comming on Day 5'} });
+// ── GET /api/stats/:slug  (Day 10) ───────────────────────────
+router.get('/stats/:slug', (req, res) => {
+  res.status(501).json({ error: { message: 'Coming on Day 10' } });
 });
 
 module.exports = router;
