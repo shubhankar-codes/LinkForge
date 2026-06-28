@@ -5,7 +5,7 @@ async function create(longUrl, userId = null) {
     `INSERT INTO urls (slug, long_url, user_id)
      VALUES ($1, $2, $3)
      RETURNING id`,
-    ["", longUrl, userId]
+    [null, longUrl, userId]
   );
 
   return result.rows[0];
