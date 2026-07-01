@@ -1,14 +1,9 @@
-const express = require('express');
-const router = express.Router();
+const express  = require('express');
+const router   = express.Router();
+const { redirect } = require('../controllers/redirect');
 
-router.get('/health', (req, res) => {
-  const {slug} = req.params;
-
-  res.json({
-    message: 'Redirect route is working',
-    slug,
-    note: 'Full implementation will be provided on Day 6',
-  });
-});
+// GET /:slug — registered LAST in app.js so it doesn't intercept /api/* routes
+// This single route handles 99% of all traffic in the entire app
+router.get('/:slug', redirect);
 
 module.exports = router;
