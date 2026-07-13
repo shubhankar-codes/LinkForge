@@ -1,54 +1,47 @@
 const cache      = require('../lib/cache');
 const UrlModel   = require('../models/url');
 const ClickModel = require('../models/click');
-const { createError }    = require('../middleware/errorHandler');
+const { createError } = require('../middleware/errorHandler');
 const { parseUserAgent, hashIp, getClientIp, getReferrer } = require('../utils/parseRequest');
 
-// GET /:slug
-// The hottest path in the entire app — optimise every line here.
 async function redirect(req, res, next) {
   try {
     const { slug } = req.params;
+    const start    = Date.now(); // track total time for logging
 
-    // ── 1. Check Redis cache first ────────────────────────────
-    // Cache key pattern: "slug:<value>" — namespaced to avoid collisions
-    const cacheKey = `slug:${slug}`;
-    const cached   = await cache.get(cacheKey);
+    // ── 1. Redis first ────────────────────────────────────────
+    const cached = await cache.getSlug(slug); // uses namespaced key snap:slug:X
 
     let longUrl;
+    let source; // "cache" or "db" — logged below, useful for debugging
 
     if (cached) {
-      // Cache HIT — fastest possible path, no DB query at all
       longUrl = cached;
+      source  = 'cache';
     } else {
-      // Cache MISS — hit the DB
+      // ── 2. DB fallback ────────────────────────────────────
       const record = await UrlModel.findBySlug(slug);
 
-      // Slug doesn't exist in DB
-      if (!record) {
-        throw createError(404, `Short link "${slug}" not found`);
-      }
+      if (!record) throw createError(404, `Short link "${slug}" not found`);
 
-      // Check expiry — if set and in the past, the link is dead
       if (record.expires_at && new Date(record.expires_at) < new Date()) {
         throw createError(410, `Short link "${slug}" has expired`);
       }
 
       longUrl = record.long_url;
+      source  = 'db';
 
-      // Store in Redis so next request is a cache hit
-      // TTL: 1 hour (3600s) — balances freshness vs speed
-      await cache.set(cacheKey, longUrl, 3600);
+      // ── 3. Warm the cache for next time ───────────────────
+      await cache.setSlug(slug, longUrl); // TTL 1hr, key snap:slug:X
     }
 
-    // ── 2. Send the redirect immediately ─────────────────────
-    // User is done — browser follows Location header right away.
-    // Everything below this line runs AFTER the user is gone.
+    const ms = Date.now() - start;
+    console.log(`→ /${slug} [${source}] ${ms}ms`); // you'll see this in terminal!
+
+    // ── 4. Redirect — user is done after this line ────────────
     res.redirect(302, longUrl);
 
-    // ── 3. Log the click asynchronously ──────────────────────
-    // We intentionally do NOT await this — it runs in the background.
-    // If it fails, the redirect already succeeded — user unaffected.
+    // ── 5. Background analytics — never awaited ───────────────
     logClickAsync(req, slug).catch(err =>
       console.error('Click log failed (non-fatal):', err.message)
     );
@@ -58,29 +51,20 @@ async function redirect(req, res, next) {
   }
 }
 
-// ── logClickAsync ─────────────────────────────────────────────
-// Runs after redirect is sent. Fetches the url record (for its id),
-// parses request metadata, and inserts a click row.
 async function logClickAsync(req, slug) {
-  // Need the url id — re-fetch from DB (cache only stores long_url)
   const record = await UrlModel.findBySlug(slug);
-  if (!record) return; // race condition guard
+  if (!record) return;
 
-  const ip  = getClientIp(req);
-  const ua  = req.headers['user-agent'];
-  const ref = getReferrer(req);
+  const { device, browser } = parseUserAgent(req.headers['user-agent']);
 
-  const { device, browser } = parseUserAgent(ua);
-
-  // Fire both writes concurrently — they don't depend on each other
   await Promise.all([
     ClickModel.logClick({
       urlId:    record.id,
-      country:  null,        // geolocation added on Day 9
+      country:  null,
       device,
       browser,
-      referrer: ref,
-      ipHash:   hashIp(ip),
+      referrer: getReferrer(req),
+      ipHash:   hashIp(getClientIp(req)),
     }),
     UrlModel.incrementClickCount(record.id),
   ]);
