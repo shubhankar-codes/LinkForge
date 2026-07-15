@@ -10,19 +10,32 @@ require("./lib/cache");
 
 const apiRoutes = require("./routes/api");
 const redirectRoutes = require("./routes/redirect");
-const { errorHandler } = require("./middleware/errorHandler");
+
+// Import rate limiter
+const { redirectLimiter } = require("./middleware/rateLimiter");
+
+// Import error middleware
+const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
+// Global middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(morgan("dev"));
 
+// API routes
 app.use("/api", apiRoutes);
-app.use("/", redirectRoutes);
 
+// Redirect routes with rate limiter
+app.use("/", redirectLimiter, redirectRoutes);
+
+// 404 handler
+app.use(notFound);
+
+// Global error handler
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;

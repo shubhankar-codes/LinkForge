@@ -1,28 +1,24 @@
-const express      = require('express');
-const router       = express.Router();
-const { shorten }  = require('../controllers/shorten');
-const cache        = require('../lib/cache');
+const express            = require('express');
+const router             = express.Router();
+const { shorten }        = require('../controllers/shorten');
+const { shortenLimiter } = require('../middleware/rateLimiter');
+const cache              = require('../lib/cache');
 
-// Health check
+// Health — no limit, monitoring tools ping this constantly
 router.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// POST /api/shorten
-router.post('/shorten', shorten);
+// POST /api/shorten — 10 per minute per IP
+router.post('/shorten', shortenLimiter, shorten);
 
-// ── NEW: GET /api/cache/stats ─────────────────────────────────
-// See live hit/miss ratio — run this in browser after a few redirects
+// Cache hit/miss metrics
 router.get('/cache/stats', async (req, res, next) => {
-  try {
-    const stats = await cache.getMetrics();
-    res.json(stats);
-  } catch (err) {
-    next(err);
-  }
+  try { res.json(await cache.getMetrics()); }
+  catch (err) { next(err); }
 });
 
-// Stats (Day 10)
+// Analytics (Day 10)
 router.get('/stats/:slug', (req, res) => {
   res.status(501).json({ error: { message: 'Coming on Day 10' } });
 });
