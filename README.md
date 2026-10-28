@@ -120,6 +120,34 @@ API will be running at `http://localhost:3000`
 
 ---
 
+## Read link analytics
+
+With the API running, request statistics for an existing slug:
+
+```bash
+curl http://localhost:3000/api/stats/mygithub
+```
+
+The JSON response contains:
+
+| Field | Meaning |
+|-------|---------|
+| `slug`, `long_url`, `created_at` | Link details |
+| `total_clicks` | All recorded click rows for the link |
+| `countries` | All-time `{ "country": "IN", "clicks": 2 }` groups; missing country is `unknown` |
+| `devices` | All-time `{ "device": "mobile", "clicks": 2 }` groups |
+| `browsers` | All-time `{ "browser": "chrome", "clicks": 2 }` groups |
+| `daily_clicks` | Seven `{ "date": "YYYY-MM-DD", "clicks": 0 }` entries, oldest first, including today and zero-click days |
+| `timezone`, `daily_window_days` | `UTC` and `7` |
+
+A link with no clicks returns zero totals, empty breakdowns, and seven zero-filled days. An unknown slug returns HTTP 404; invalid slug formats return 400. Reads are limited to 30 per minute per client IP (429 when exceeded).
+
+Click tracking runs asynchronously after redirects, so wait a few seconds before checking statistics. Totals come from recorded click rows, not the separately updated `urls.click_count` counter. No schema changes are required for this endpoint.
+
+Statistics are currently public to anyone who knows the slug. Responses contain aggregates and link details, without IP hashes, raw click records, or account information. Account-specific analytics authorization can be added with authentication.
+
+---
+
 ## Daily Build Log
 
 This project was built in 21 days. Each day's progress is documented below.
@@ -135,7 +163,7 @@ This project was built in 21 days. Each day's progress is documented below.
 | 7   | Redis caching layer | ✅ |
 | 8   | Rate limiting + error handling | ✅ |
 | 9   | Click tracking + analytics | ✅ |
-| 10  | Analytics API | 🔲 |
+| 10  | Analytics API | ✅ |
 | 11  | Rules engine (geo/device redirects) | 🔲 |
 | 12  | JWT authentication | 🔲 |
 | 13  | Next.js frontend scaffold | 🔲 |

@@ -1,7 +1,8 @@
 const express            = require('express');
 const router             = express.Router();
 const { shorten }        = require('../controllers/shorten');
-const { shortenLimiter } = require('../middleware/rateLimiter');
+const { stats }          = require('../controllers/stats');
+const { shortenLimiter, statsLimiter } = require('../middleware/rateLimiter');
 const cache              = require('../lib/cache');
 
 // Health — no limit, monitoring tools ping this constantly
@@ -18,9 +19,7 @@ router.get('/cache/stats', async (req, res, next) => {
   catch (err) { next(err); }
 });
 
-// Analytics (Day 10)
-router.get('/stats/:slug', (req, res) => {
-  res.status(501).json({ error: { message: 'Coming on Day 10' } });
-});
+// Public aggregate analytics — 30 requests per minute per IP.
+router.get('/stats/:slug', statsLimiter, stats);
 
 module.exports = router;
