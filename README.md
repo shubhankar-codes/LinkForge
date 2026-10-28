@@ -128,13 +128,13 @@ This project was built in 21 days. Each day's progress is documented below.
 |-----|---------|--------|
 | 1   | Core theory + project scaffold | ✅ |
 | 2   | Database schema design | ✅ |
-| 3   | Express app scaffold | 🔲 |
-| 4   | Slug generation (base62) | 🔲 |
-| 5   | POST /api/shorten endpoint | 🔲 |
-| 6   | GET /:slug redirect | 🔲 |
-| 7   | Redis caching layer | 🔲 |
-| 8   | Rate limiting + error handling | 🔲 |
-| 9   | Click tracking + analytics | 🔲 |
+| 3   | Express app scaffold | ✅ |
+| 4   | Slug generation (base62) | ✅ |
+| 5   | POST /api/shorten endpoint | ✅ |
+| 6   | GET /:slug redirect | ✅ |
+| 7   | Redis caching layer | ✅ |
+| 8   | Rate limiting + error handling | ✅ |
+| 9   | Click tracking + analytics | ✅ |
 | 10  | Analytics API | 🔲 |
 | 11  | Rules engine (geo/device redirects) | 🔲 |
 | 12  | JWT authentication | 🔲 |
