@@ -75,6 +75,7 @@ describe('getClientIp() — proxy chain', () => {
   test('takes first IP from x-forwarded-for chain', () => {
     // Railway / Vercel send: client, proxy1, proxy2
     const req = {
+      ip: '103.21.244.1',
       headers: { 'x-forwarded-for': '103.21.244.1, 10.0.0.1, 172.16.0.5' },
       socket: {}
     };
@@ -82,7 +83,7 @@ describe('getClientIp() — proxy chain', () => {
   });
 
   test('handles single IP in forwarded header', () => {
-    const req = { headers: { 'x-forwarded-for': '8.8.8.8' }, socket: {} };
+    const req = { ip: '8.8.8.8', headers: { 'x-forwarded-for': '8.8.8.8' }, socket: {} };
     expect(getClientIp(req)).toBe('8.8.8.8');
   });
 });

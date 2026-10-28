@@ -60,9 +60,9 @@ function isValidCustomSlug(slug) {
     return { valid: false, reason: `"${slug}" is a reserved word` };
   }
 
-  // Only allow alphanumeric + hyphens, 3–30 chars
-  if (!/^[a-zA-Z0-9-]{3,30}$/.test(slug)) {
-    return { valid: false, reason: 'Slug must be 3–30 characters, letters/numbers/hyphens only' };
+  // Only allow alphanumeric + hyphens, 3–10 chars
+  if (!/^[a-zA-Z0-9-]{3,10}$/.test(slug)) {
+    return { valid: false, reason: 'Slug must be 3–10 characters, letters/numbers/hyphens only' };
   }
 
   return { valid: true };

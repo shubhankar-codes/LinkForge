@@ -12,6 +12,7 @@ function createError(status, message) {
 // Express calls this when any route does next(err) or throws.
 // Must have exactly 4 params — Express detects this signature.
 function errorHandler(err, req, res, next) { // eslint-disable-line no-unused-vars
+  if (res.headersSent) return next(err);
   const status  = err.status || 500;
   const isDev   = process.env.NODE_ENV !== 'production';
 
