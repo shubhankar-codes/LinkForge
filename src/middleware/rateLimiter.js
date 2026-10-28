@@ -14,4 +14,5 @@ module.exports = {
   shortenLimiter: limiter(10),
   redirectLimiter: limiter(120),
   authLimiter: limiter(5),
+  statsLimiter: limiter(30),
 };
