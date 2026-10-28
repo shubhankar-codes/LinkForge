@@ -1,5 +1,5 @@
 // We mock the DB model so tests run without a real PostgreSQL connection
-jest.mock('../src/models/url');
+jest.mock('../src/models/url', () => ({ create: jest.fn(), setSlug: jest.fn() }));
 
 const UrlModel = require('../src/models/url');
 const { isValidUrl } = require('../src/utils/validate');

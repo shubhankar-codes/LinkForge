@@ -19,6 +19,12 @@ const { notFound, errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
+// Configure only the trusted proxy hops/addresses used by your deployment.
+if (process.env.TRUST_PROXY) {
+  const value = process.env.TRUST_PROXY;
+  app.set('trust proxy', /^\d+$/.test(value) ? Number(value) : value.split(',').map(x => x.trim()));
+}
+
 // Global middleware
 app.use(helmet());
 app.use(cors());
@@ -40,7 +46,7 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+if (require.main === module) app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`NODE_ENV: ${process.env.NODE_ENV || "development"}`);
 });
