@@ -1,3 +1,4 @@
+const { getBaseUrl } = require('../utils/baseUrl');
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -58,7 +59,7 @@ router.get('/stats/:slug',auth,wrap(async(req,res) => {
 router.get('/qr/:slug',wrap(async(req,res) => {
   const row=(await db.query('SELECT slug FROM urls WHERE slug=$1',[req.params.slug])).rows[0];
   if (!row) throw createError(404,'Link not found');
-  const target = `${process.env.BASE_URL || 'http://localhost:3000'}/${row.slug}`;
+  const target = `${getBaseUrl()}/${row.slug}`;
   const key = `linkforge:qr:${target}`;
   const cached = await cache.get(key);
   const buffer = cached ? Buffer.from(cached, 'base64') : await QRCode.toBuffer(target,{width:512,margin:2});
@@ -85,7 +86,7 @@ router.post('/bio',auth,wrap(async(req,res) => {
     const p=result.rows[0];
     await client.query('DELETE FROM bio_links WHERE bio_page_id=$1',[p.id]);
     for(let i=0;i<links.length;i++) await client.query('INSERT INTO bio_links(bio_page_id,label,url,position) VALUES($1,$2,$3,$4)',[p.id,links[i].label,links[i].url,i]);
-    await client.query('COMMIT'); res.json({...p,links,url:`${process.env.BASE_URL || 'http://localhost:3000'}/b/${username}`});
+    await client.query('COMMIT'); res.json({...p,links,url:`${getBaseUrl()}/b/${username}`});
   } catch(err) {await client.query('ROLLBACK'); throw err;} finally {client.release();}
 }));
 module.exports=router;

@@ -1,3 +1,4 @@
+const { getBaseUrl } = require('../utils/baseUrl');
 const bcrypt = require('bcryptjs');
 const { isValidUrl, isValidCustomSlug } = require('../utils/validate');
 const { createError } = require('../middleware/errorHandler');
@@ -26,6 +27,6 @@ async function validateLink(body) {
 }
 function publicLink(row) {
   const { password_hash, ...rest } = row;
-  return { ...rest, protected: !!password_hash, short_url: `${process.env.BASE_URL || 'http://localhost:3000'}/${row.slug}` };
+  return { ...rest, protected: !!password_hash, short_url: `${getBaseUrl()}/${row.slug}` };
 }
 module.exports = { validateLink, publicLink, check };

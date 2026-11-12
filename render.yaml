@@ -1,0 +1,25 @@
+# Render hosts the app; Neon supplies PostgreSQL (no Render database is created).
+services:
+  - type: web
+    name: linkforge
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # Startup migrations also work on plans without a pre-deploy command.
+    dockerCommand: /bin/sh -c 'node scripts/migrate.js && exec node src/app.js'
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_UNPOOLED
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ANALYTICS_SALT
+        generateValue: true
+      - key: TRUST_PROXY
+        value: "1"

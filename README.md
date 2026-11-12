@@ -78,3 +78,14 @@ docker compose up --build
 PostgreSQL data lives in a named volume. The app waits for database health, applies migrations, and starts on port 3000. The Docker image uses Node 22 and a non-root runtime user. For an external host, provision PostgreSQL, set `DATABASE_URL` (or the `DB_*` variables), `BASE_URL`, `JWT_SECRET`, and `ANALYTICS_SALT`; run migrations before starting. Put HTTPS in front of production and configure trusted proxies explicitly. Public cloud hosting has not been provisioned by this repository.
 
 Production rate limits are per process. A multi-instance installation should use a shared rate-limit store. Add durable analytics delivery, abuse/moderation controls, account recovery, backups, and production monitoring before operating a public service at scale. No sub-millisecond latency or load capacity claim has been benchmarked.
+
+## Deploy with Render and Neon
+
+The `render.yaml` Blueprint deploys the existing Docker image with database health checks, startup migrations, and persistent generated secrets. Neon supplies PostgreSQL; no Render database is created.
+
+1. Create a Neon project and copy both connection URLs: pooled for `DATABASE_URL`, direct for `DATABASE_URL_UNPOOLED`. Keep the supplied TLS query parameters.
+2. In Render choose **New → Blueprint**, connect this repository on `main`, and supply those two secret values when prompted.
+3. Render generates persistent `JWT_SECRET` and `ANALYTICS_SALT` values and runs migrations before starting the app. Generated short links automatically use the Render HTTPS hostname.
+4. Open `/api/health` on the deployed service, register, create a link and test its redirect.
+
+Follow [the full Render + Neon deployment guide](docs/RENDER_NEON.md) for custom domains, manual service setup, troubleshooting and secret persistence. The Blueprint starts with a free service; an always-on paid instance avoids idle wake-up delays. No live cloud resources have been provisioned yet.
