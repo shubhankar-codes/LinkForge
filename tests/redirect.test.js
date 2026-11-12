@@ -60,8 +60,8 @@ describe('hashIp()', () => {
 
 // ── getClientIp ───────────────────────────────────────────────
 describe('getClientIp()', () => {
-  test('reads x-forwarded-for header (proxy/CDN)', () => {
-    const req = { headers: { 'x-forwarded-for': '1.2.3.4, 10.0.0.1' }, socket: {} };
+  test('uses the client IP resolved by Express', () => {
+    const req = { ip: '1.2.3.4', headers: { 'x-forwarded-for': '1.2.3.4, 10.0.0.1' }, socket: {} };
     expect(getClientIp(req)).toBe('1.2.3.4'); // first IP in the chain
   });
 
