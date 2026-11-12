@@ -5,11 +5,6 @@
 --   psql -U postgres -d snapurl -f schema.sql
 -- ============================================================
 
-DROP TABLE IF EXISTS bio_links CASCADE;
-DROP TABLE IF EXISTS bio_pages CASCADE;
-DROP TABLE IF EXISTS clicks CASCADE;
-DROP TABLE IF EXISTS urls CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
 -- ── USERS ────────────────────────────────────────────────────
 -- Accounts are optional — anonymous links have user_id = NULL
 CREATE TABLE users (
@@ -26,7 +21,7 @@ CREATE TABLE users (
 -- Core table. One row = one short link.
 CREATE TABLE urls (
   id            SERIAL PRIMARY KEY,
-  slug          VARCHAR(10)  NOT NULL,          -- base62-encoded id, e.g. "4aB9x"
+  slug          VARCHAR(30)  UNIQUE,          -- base62-encoded id, e.g. "4aB9x"
   long_url      TEXT         NOT NULL,          -- TEXT not VARCHAR — URLs can be very long
   user_id       INTEGER      REFERENCES users(id) ON DELETE SET NULL,  -- nullable for anon links
 
@@ -134,26 +129,3 @@ CREATE UNIQUE INDEX idx_bio_pages_username
 
 
 -- ============================================================
--- SEED DATA (for local development only)
--- Gives you something to work with immediately
--- ============================================================
-
--- A test user (password is "password123" — bcrypt hash)
-INSERT INTO users (email, password_hash)
-VALUES ('test@example.com', '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
-
--- A test short URL linked to that user
--- slug "test01" → id 1 → we'll encode properly once base62 is built on Day 4
-INSERT INTO urls (slug, long_url, user_id, click_count)
-VALUES ('test01', 'https://github.com', 1, 0);
-
--- A few fake clicks so your analytics dashboard isn't empty
-INSERT INTO clicks (url_id, country, device, browser, referrer)
-VALUES
-  (1, 'IN', 'mobile',  'chrome',  'https://twitter.com'),
-  (1, 'US', 'desktop', 'chrome',  'https://google.com'),
-  (1, 'IN', 'mobile',  'safari',  NULL),
-  (1, 'GB', 'desktop', 'firefox', 'https://reddit.com'),
-  (1, 'IN', 'tablet',  'chrome',  'https://whatsapp.com');
-
-

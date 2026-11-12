@@ -1,7 +1,6 @@
 const { getCountry }     = require('./geo');
 const { parseUserAgent, hashIp, getClientIp, getReferrer } = require('../utils/parseRequest');
 const ClickModel         = require('../models/click');
-const UrlModel           = require('../models/url');
 
 // ── trackClick(req, urlRecord) ────────────────────────────────
 // Called fire-and-forget after res.redirect() is sent.
@@ -26,11 +25,12 @@ async function trackClick(req, urlRecord) {
       device,                  // "mobile", "desktop", "tablet", "unknown"
       browser,                 // "chrome", "firefox", "safari", "edge", "other"
       referrer: ref,           // "https://twitter.com" or null
-      ipHash:   hashIp(ip),   // SHA-256 hash — never raw IP
+      ipHash:   hashIp(ip),
+      utm: Object.fromEntries(["utm_source", "utm_medium", "utm_campaign"].map(key => [key, new URL(urlRecord.long_url).searchParams.get(key)])),   // SHA-256 hash — never raw IP
     });
 
     // Increment the fast counter on the url row
-    await UrlModel.incrementClickCount(urlRecord.id);
+    // Counter is reserved atomically by the redirect handler.
 
   } catch (err) {
     // Analytics failure must never affect the redirect

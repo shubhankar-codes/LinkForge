@@ -1,0 +1,1 @@
+{"env":{"node":true,"browser":true,"es2022":true,"jest":true},"parserOptions":{"ecmaVersion":2022},"extends":"eslint:recommended","rules":{"no-unused-vars":["error",{"argsIgnorePattern":"^next$","caughtErrors":"none"}]}}

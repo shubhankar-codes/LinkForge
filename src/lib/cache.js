@@ -3,8 +3,11 @@ const Redis = require('ioredis');
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
   lazyConnect: true,
   maxRetriesPerRequest: 1,
+  retryStrategy: times => times <= 3 ? 1000 : null,
   enableOfflineQueue: false, // don't queue commands when Redis is down — fail fast
 });
+
+if (process.env.REDIS_URL) redis.connect().catch(() => {});
 
 redis.on('connect', () => console.log('✅ Redis connected'));
 redis.on('error',   (err) => console.error('⚠️  Redis error (non-fatal):', err.message));
@@ -32,6 +35,7 @@ const metrics = { hits: 0, misses: 0, errors: 0 };
 // ── Core operations ───────────────────────────────────────────
 
 async function get(key) {
+  if (!process.env.REDIS_URL && process.env.NODE_ENV !== 'test') return null;
   try {
     const val = await redis.get(key);
     if (val !== null) {
@@ -47,6 +51,7 @@ async function get(key) {
 }
 
 async function set(key, value, ttlSeconds = TTL.SLUG) {
+  if (!process.env.REDIS_URL && process.env.NODE_ENV !== 'test') return;
   try {
     // 'EX' sets expiry in seconds — key auto-deletes after TTL
     await redis.set(key, value, 'EX', ttlSeconds);
