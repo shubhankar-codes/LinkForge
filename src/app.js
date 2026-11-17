@@ -14,6 +14,7 @@ app.use(express.json({limit:'64kb'}));
 app.use(express.urlencoded({extended:false,limit:'8kb'}));
 app.use(require('morgan')('dev'));
 app.use(express.static(require('path').join(__dirname,'../public')));
+app.get('/favicon.ico', (req, res) => res.status(204).end());
 app.use('/api',require('./routes/api'));
 // Compatibility with the documented auth paths.
 app.use('/auth',(req,res,next)=>{req.url='/auth'+req.url;require('./routes/api')(req,res,next);});

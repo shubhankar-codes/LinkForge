@@ -2,7 +2,12 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 // Use a direct Neon session for DDL and the migration advisory lock.
-if (process.env.DATABASE_URL_UNPOOLED) process.env.DATABASE_URL = process.env.DATABASE_URL_UNPOOLED;
+if (process.env.DATABASE_URL_UNPOOLED) {
+  const { databaseConfig, validateConnectionString } = require('../src/lib/dbConfig');
+  databaseConfig();
+  validateConnectionString(process.env.DATABASE_URL_UNPOOLED, 'DATABASE_URL_UNPOOLED');
+  process.env.DATABASE_URL = process.env.DATABASE_URL_UNPOOLED;
+}
 const db = require('../src/lib/db');
 (async () => {
   let client;

@@ -19,3 +19,8 @@ test('custom domain overrides Render default without duplicate slashes', () => {
   expect(getBaseUrl({BASE_URL:'https://links.example.com/',RENDER_EXTERNAL_URL:'https://linkforge.onrender.com'})).toBe('https://links.example.com');
   expect(getBaseUrl({PORT:'3087'})).toBe('http://localhost:3087');
 });
+
+test.each(['base', "psql 'postgresql://example@host/neondb'", 'DATABASE_URL=postgresql://example@host/neondb', 'postgresql://example@base/neondb'])(
+  'rejects malformed PostgreSQL connection input before DNS lookup',
+  value => expect(() => databaseConfig({ DATABASE_URL: value })).toThrow('DATABASE_URL must contain only the PostgreSQL URL')
+);
