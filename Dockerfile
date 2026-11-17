@@ -10,4 +10,4 @@ COPY schema.sql ./
 ENV NODE_ENV=production
 USER node
 EXPOSE 3000
-CMD ["node", "src/app.js"]
+CMD ["/bin/sh", "-c", "node scripts/migrate.js && exec node src/app.js"]

@@ -11,7 +11,7 @@ const { createError } = require('../middleware/errorHandler');
 const { validateLink, publicLink, check } = require('../services/links');
 const { isValidUrl, isValidCustomSlug } = require('../utils/validate');
 const wrap = fn => (req,res,next) => Promise.resolve(fn(req,res,next)).catch(next);
-router.get('/health', wrap(async (req,res) => { await db.query('SELECT 1'); res.json({status:'ok'}); }));
+router.get('/health', wrap(async (req,res) => { await db.query('SELECT id FROM public.urls LIMIT 0'); res.json({status:'ok'}); }));
 for (const action of ['register','login']) router.post(`/auth/${action}`, authLimiter, wrap(async (req,res) => {
   const {email,password} = req.body;
   check(typeof email === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 255, 'Enter a valid email');

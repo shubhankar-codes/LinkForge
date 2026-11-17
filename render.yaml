@@ -7,8 +7,6 @@ services:
     branch: main
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    # Startup migrations also work on plans without a pre-deploy command.
-    dockerCommand: /bin/sh -c 'node scripts/migrate.js && exec node src/app.js'
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

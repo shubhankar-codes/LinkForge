@@ -26,9 +26,9 @@ Render generates `JWT_SECRET` and `ANALYTICS_SALT` when those variables do not a
 ## 3. What happens during deployment
 
 - Render builds the existing Dockerfile using Node 22 and installs production dependencies.
-- The start override runs `node scripts/migrate.js && exec node src/app.js`.
+- The Dockerfile runs `node scripts/migrate.js && exec node src/app.js`.
 - Migrations take a database advisory lock, create the schema if absent, and apply repeatable additive migrations. A failure stops startup. Existing records are preserved.
-- `/api/health` checks database connectivity.
+- `/api/health` checks database connectivity and the presence of the `urls` table.
 - The app uses Render's supplied `PORT` and `RENDER_EXTERNAL_URL`. Short links, QR images, bio links and preview URLs use the deployed HTTPS address automatically.
 - `TRUST_PROXY=1` is configured for the Render reverse proxy; revisit the setting if you add another proxy layer.
 
@@ -51,7 +51,7 @@ Add your domain in Render and complete the required DNS configuration. Set `BASE
 
 If using **New → Web Service** rather than a Blueprint, select Docker and set:
 
-- Docker command: `/bin/sh -c 'node scripts/migrate.js && exec node src/app.js'`
+- Leave Docker Command empty so Render uses the Dockerfile default, which runs migrations before starting the app.
 - Health check: `/api/health`
 - Environment: `NODE_ENV=production`, `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `JWT_SECRET`, `ANALYTICS_SALT`, and `TRUST_PROXY=1`.
 
