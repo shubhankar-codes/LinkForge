@@ -22,10 +22,14 @@ async function redirect(req, res, next) {
         unlocked = typeof req.body.password === 'string' && req.body.password.length <= 72 && await bcrypt.compare(req.body.password, record.password_hash);
         if (unlocked) {
           res.cookie('lf_gate', jwt.sign({slug:record.slug,version:crypto.createHash('sha256').update(record.password_hash).digest('hex')}, process.env.JWT_SECRET, {expiresIn:'15m'}), {httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV === 'production',path:`/${record.slug}`,maxAge:900000});
-          return res.redirect(303, `/${record.slug}`);
         }
       }
       if (!unlocked) return res.status(req.method === 'POST' ? 401 : 200).send(page('Protected link', `<h1>A little privacy.</h1><p>This link is protected. Enter its password to continue.</p><form method="post" action="/${escape(record.slug)}"><label>Password<input type="password" name="password" required maxlength="72" autocomplete="current-password"></label><button>Unlock link ↗</button></form>${req.method === 'POST' ? '<p role="alert">Incorrect password. Try again.</p>' : ''}`));
+      if (req.method === 'POST') {
+        // A form response must end here. The continue link starts a separate
+        // navigation so form-action 'self' does not apply to the destination.
+        return res.send(page('Link unlocked', `<h1>Link unlocked</h1><a class="button" href="/${escape(record.slug)}">Continue to destination ↗</a>`));
+      }
     }
     const rules = record.rules || [];
     let destination = record.long_url;

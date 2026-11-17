@@ -10,9 +10,9 @@ let requests=0;
 async function main(){
   await new Promise(resolve=>server.listening?resolve():server.once('listening',resolve));
   const base=`http://127.0.0.1:${server.address().port}`;
-  async function request(path,{token,body,method='GET',headers={}}={}) {
+  async function request(path,{token,body,method='GET',headers={},form}={}) {
     requests++;
-    return fetch(base+path,{method,redirect:'manual',headers:{...(token?{authorization:`Bearer ${token}`} : {}),...(body?{'content-type':'application/json'}:{}),...headers},body:body?JSON.stringify(body):undefined});
+    return fetch(base+path,{method,redirect:'manual',headers:{...(token?{authorization:`Bearer ${token}`} : {}),...(body?{'content-type':'application/json'}:{}),...headers},body:form || (body?JSON.stringify(body):undefined)});
   }
   async function json(path,options){const r=await request(path,options);const data=await r.json();assert.ok(r.ok,`${path}: ${JSON.stringify(data)}`);return data;}
   assert.equal((await request('/')).status,200);
@@ -39,8 +39,23 @@ async function main(){
   const gated=await json('/api/shorten',{token,method:'POST',body:{url:'https://example.com',password:'private-password'}});
   assert.equal((await request('/'+gated.slug)).status,200);
   assert.equal((await request('/'+gated.slug,{method:'POST',body:{password:'wrong'}})).status,401);
-  r=await request('/'+gated.slug,{method:'POST',body:{password:'private-password'}});assert.equal(r.status,303);assert.ok(r.headers.get('set-cookie').includes('HttpOnly'));
-  assert.equal((await request('/'+gated.slug,{headers:{cookie:r.headers.get('set-cookie').split(';')[0]}})).status,302);
+  r=await request('/'+gated.slug,{
+    method:'POST',
+    headers:{'content-type':'application/x-www-form-urlencoded'},
+    form:new URLSearchParams({password:'private-password'}),
+  });
+  assert.equal(r.status,200);
+  assert.equal(r.headers.get('location'),null);
+  assert.ok(r.headers.get('content-security-policy').includes("form-action 'self'"));
+  assert.ok(r.headers.get('set-cookie').includes('HttpOnly'));
+  assert.ok((await r.text()).includes(`href="/${gated.slug}">Continue to destination`));
+  const gateCookie=r.headers.get('set-cookie').split(';')[0];
+  r=await request('/'+gated.slug,{headers:{cookie:gateCookie}});
+  assert.equal(r.status,302);
+  assert.equal(r.headers.get('location'),'https://example.com');
+  r=await request('/'+gated.slug,{method:'POST',headers:{cookie:gateCookie},body:{password:'private-password'}});
+  assert.equal(r.status,200);
+  assert.equal(r.headers.get('location'),null);
   const expiry=await json('/api/shorten',{token,method:'POST',body:{url:'https://example.com'}});
   await db.query("UPDATE urls SET expires_at=NOW()-INTERVAL '1 second' WHERE id=$1",[expiry.id]);
   assert.equal((await request('/'+expiry.slug)).status,410);
